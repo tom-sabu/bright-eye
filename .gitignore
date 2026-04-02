@@ -1,0 +1,9 @@
+# Build files
+*.apk
+*.dex
+out/
+temp/
+
+# Signing keys
+*.keystore
+*.idsig
