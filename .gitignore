@@ -1,9 +1,22 @@
-# Build files
+# Build outputs
 *.apk
 *.dex
 out/
-temp/
+context/
 
-# Signing keys
+#for nvim lsp
+.classpath
+.project
+
+# Signing / security
 *.keystore
 *.idsig
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files (optional but recommended)
+*.iml
+.idea/
+.vscode/
