@@ -4,9 +4,8 @@
 out/
 context/
 
-#for nvim lsp
-.classpath
-.project
+# Kotlin compiler cache
+.kotlin/
 
 # Signing / security
 *.keystore
@@ -16,7 +15,7 @@ context/
 .DS_Store
 Thumbs.db
 
-# IDE files (optional but recommended)
+# IDE files
 *.iml
 .idea/
 .vscode/

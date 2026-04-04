@@ -3,17 +3,28 @@
 # Load environment variables ($PLATFORM, $BUILD_TOOLS)
 source ~/.bashrc
 
+KOTLIN_HOME=/opt/kotlinc
+KOTLIN_STDLIB=$KOTLIN_HOME/lib/kotlin-stdlib.jar
+
 echo "Cleaning up old build files..."
 rm -rf out/*
 rm -f classes.dex app-unsigned.apk aligned.apk
 mkdir -p out
 
-echo "Compiling Java..."
-javac -source 8 -target 8 -bootclasspath $PLATFORM -d out src/com/example/app/MainActivity.java || { echo "Compilation failed"; exit 1; }
+echo "Compiling Kotlin..."
+$KOTLIN_HOME/bin/kotlinc \
+    src/com/example/app/MainActivity.kt \
+    -classpath $PLATFORM \
+    -d out || { echo "Compilation failed"; exit 1; }
 
 echo "Converting to DEX..."
-# Using $(find out -name "*.class") to ensure BOTH MainActivity.class and MainActivity$1.class are packaged!
-$BUILD_TOOLS/d8 --lib $PLATFORM --min-api 24 $(find out -name "*.class") --output . || { echo "DEX conversion failed"; exit 1; }
+# Include kotlin-stdlib.jar and all compiled classes
+$BUILD_TOOLS/d8 \
+    --lib $PLATFORM \
+    --min-api 24 \
+    $KOTLIN_STDLIB \
+    $(find out -name "*.class") \
+    --output . || { echo "DEX conversion failed"; exit 1; }
 
 echo "Packaging Resources & Manifest..."
 $BUILD_TOOLS/aapt package -f -M AndroidManifest.xml -I $PLATFORM -F app-unsigned.apk || { echo "AAPT packaging failed"; exit 1; }
