@@ -2,6 +2,7 @@
 *.apk
 *.dex
 out/
+bin/
 context/
 
 # Kotlin compiler cache
