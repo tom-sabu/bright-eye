@@ -3,7 +3,11 @@
 *.dex
 out/
 bin/
+build/
+app/build/
+.gradle/
 context/
+local.properties
 
 # Kotlin compiler cache
 .kotlin/

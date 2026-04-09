@@ -1,0 +1,3 @@
+rootProject.name = "bright_eye"
+include(":app")
+
