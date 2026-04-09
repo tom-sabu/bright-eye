@@ -24,3 +24,6 @@ Thumbs.db
 *.iml
 .idea/
 .vscode/
+.project
+.settings/
+.classpath

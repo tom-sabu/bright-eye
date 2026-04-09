@@ -17,7 +17,7 @@ import kotlin.math.sqrt
 
 class GestureRecognizerHelper(
     private val context: Context,
-    private val onPinchDistance: (Float) -> Unit
+    private val onGestureResult: (distance: Float?, landmarks: List<Pair<Float, Float>>) -> Unit
 ) {
     private var recognizer: GestureRecognizer? = null
     private var recognizerReady = false
@@ -79,10 +79,17 @@ class GestureRecognizerHelper(
     private fun handleResult(result: GestureRecognizerResult) {
         try {
             val landmarks = result.landmarks()
-            if (landmarks.isEmpty()) return
+            if (landmarks.isEmpty()) {
+                onGestureResult(null, emptyList())
+                return
+            }
 
             val firstHand = landmarks[0]
-            if (firstHand.size <= 8) return
+            val points = firstHand.map { it.x() to it.y() }
+            if (firstHand.size <= 8) {
+                onGestureResult(null, points)
+                return
+            }
 
             val thumbTip = firstHand[4]
             val indexTip = firstHand[8]
@@ -90,7 +97,7 @@ class GestureRecognizerHelper(
             val dx = thumbTip.x() - indexTip.x()
             val dy = thumbTip.y() - indexTip.y()
             val distance = sqrt(dx * dx + dy * dy)
-            onPinchDistance(distance)
+            onGestureResult(distance, points)
         } catch (e: Exception) {
             Log.e("GestureHelper", "Failed to parse gesture result", e)
         }

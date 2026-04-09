@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.view.SurfaceView
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 
@@ -15,6 +16,7 @@ import android.widget.TextView
 class MainUI(private val activity: Activity, private val onCaptureClicked: () -> Unit) {
     
     val surfaceView: SurfaceView
+    private val handOverlayView: HandOverlayView
     private val statusText: TextView
 
     init {
@@ -27,13 +29,33 @@ class MainUI(private val activity: Activity, private val onCaptureClicked: () ->
             )
         }
 
-        surfaceView = SurfaceView(activity).apply {
+        val previewContainer = FrameLayout(activity).apply {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 0,
-                1.0f // consumes available space above button
+                1.0f
             )
         }
+
+        surfaceView = SurfaceView(activity)
+        handOverlayView = HandOverlayView(activity).apply {
+            setBackgroundColor(Color.TRANSPARENT)
+        }
+
+        previewContainer.addView(
+            surfaceView,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        previewContainer.addView(
+            handOverlayView,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
 
         val captureButton = Button(activity).apply {
             text = "Capture"
@@ -58,7 +80,7 @@ class MainUI(private val activity: Activity, private val onCaptureClicked: () ->
             )
         }
 
-        rootLayout.addView(surfaceView)
+        rootLayout.addView(previewContainer)
         rootLayout.addView(statusText)
         rootLayout.addView(captureButton)
 
@@ -67,5 +89,13 @@ class MainUI(private val activity: Activity, private val onCaptureClicked: () ->
 
     fun updateStatus(text: String) {
         statusText.text = text
+    }
+
+    fun updateLandmarks(points: List<Pair<Float, Float>>) {
+        handOverlayView.updateLandmarks(points)
+    }
+
+    fun clearLandmarks() {
+        handOverlayView.clear()
     }
 }

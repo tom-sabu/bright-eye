@@ -48,19 +48,38 @@ class MainActivity : Activity() {
             cameraController.capturePhoto()
         }
 
-        gestureHelper = GestureRecognizerHelper(this) { distance ->
-            // Distance is normalized 0..1 in image coordinates.
-            val brightness = applyBrightnessFromPinchDistance(distance)
-            val now = SystemClock.elapsedRealtime()
-            if (now - lastUiUpdateMs >= 120) {
-                lastUiUpdateMs = now
-                runOnUiThread {
-                    mainUI.updateStatus(
-                        "Pinch distance: ${"%.3f".format(distance)}  |  Brightness: ${(brightness * 100).roundToInt()}%"
-                    )
+        gestureHelper = GestureRecognizerHelper(this) { distance, landmarks ->
+            val alignedLandmarks = transformLandmarksForDisplay(landmarks)
+            runOnUiThread {
+                if (alignedLandmarks.isEmpty()) {
+                    mainUI.clearLandmarks()
+                } else {
+                    mainUI.updateLandmarks(alignedLandmarks)
                 }
             }
-            android.util.Log.d("GestureHelper", "Thumb-index distance=$distance brightness=$brightness")
+
+            if (distance != null) {
+                // Distance is normalized 0..1 in image coordinates.
+                val brightness = applyBrightnessFromPinchDistance(distance)
+                val now = SystemClock.elapsedRealtime()
+                if (now - lastUiUpdateMs >= 120) {
+                    lastUiUpdateMs = now
+                    runOnUiThread {
+                        mainUI.updateStatus(
+                            "Pinch distance: ${"%.3f".format(distance)}  |  Brightness: ${(brightness * 100).roundToInt()}%"
+                        )
+                    }
+                }
+                android.util.Log.d("GestureHelper", "Thumb-index distance=$distance brightness=$brightness")
+            } else {
+                val now = SystemClock.elapsedRealtime()
+                if (now - lastUiUpdateMs >= 200) {
+                    lastUiUpdateMs = now
+                    runOnUiThread {
+                        mainUI.updateStatus("Gesture: no hand detected")
+                    }
+                }
+            }
         }
         gestureHelper.initialize()
 
@@ -216,5 +235,25 @@ class MainActivity : Activity() {
         if (b < 0) b = 0 else if (b > 255) b = 255
 
         return intArrayOf(r, g, b)
+    }
+
+    private fun transformLandmarksForDisplay(points: List<Pair<Float, Float>>): List<Pair<Float, Float>> {
+        if (points.isEmpty()) return points
+
+        val viewW = mainUI.surfaceView.width
+        val viewH = mainUI.surfaceView.height
+        if (viewW <= 0 || viewH <= 0) return points
+
+        // MediaPipe landmarks come from a landscape (640x480) frame.
+        // On portrait preview, rotate points clockwise to match the display.
+        return if (viewH > viewW) {
+            points.map { (x, y) ->
+                val nx = (1f - y).coerceIn(0f, 1f)
+                val ny = x.coerceIn(0f, 1f)
+                nx to ny
+            }
+        } else {
+            points
+        }
     }
 }
